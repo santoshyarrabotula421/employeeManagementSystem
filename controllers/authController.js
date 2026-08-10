@@ -18,6 +18,13 @@ const registerController = async(req,res)=>{
             "message" : "All fields required"
         })
     }
+    if(password.length < 6)
+    {
+        res.status(400).json({
+            success : false,
+            message : "password should be atleast 6 characters"
+        })
+    }
     const existedUser = await User.findOne({email});
     if(existedUser)
     {
