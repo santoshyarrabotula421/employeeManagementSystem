@@ -1,7 +1,11 @@
 import Router from "router"
-import {testController} from "../controllers/authController.js"
+import {testController,registerController} from "../controllers/authController.js"
 const router = Router()
 
+
+
 router.get("/test",testController);
+router.post("/register",registerController)
+
 
 export default router;
