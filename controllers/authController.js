@@ -10,7 +10,7 @@ const testController = (req,res) => {
 
 const registerController = async(req,res)=>{
     try{
-    const {name,email,password} = req.body;
+    const {name,email,password,role} = req.body;
     if(!name || !email || !password)
     {
         return res.status(400).json({
@@ -34,7 +34,11 @@ const registerController = async(req,res)=>{
         })
     }
     const hashedPassword = await bcrypt.hash(password,10);
+    if(role === undefined || role === null)
+    {
     await User.create({name,email,password : hashedPassword});
+    }
+    else await User.create({name,email,password : hashedPassword,role})
     
     res.status(201).json({
         "success" : true,
