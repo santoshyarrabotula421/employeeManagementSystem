@@ -43,4 +43,12 @@ const createEmployeeController = async(req,res)=>{
 }
 }
 
-export {createEmployeeController};
+const getEmployees = async(req,res) =>{
+    const employees = await Employee.find().populate("user","-password");
+    return res.status(200).json({
+        success : true,
+        employees
+    })
+}
+
+export {createEmployeeController,getEmployees};
