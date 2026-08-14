@@ -113,9 +113,9 @@ const updateEmployee = async(req,res)=>{
     const updatedEmployee = await Employee.findByIdAndUpdate(id,updates,{new : true,runValidators : true}).populate("user","-password")
     if(!updatedEmployee)
     {
-        return res.status(404).json({
+         return res.status(404).json({
             success : false,
-            
+            message : "Employee not found"
         })
     }
     res.status(200).json({
@@ -131,4 +131,38 @@ const updateEmployee = async(req,res)=>{
         })
     }
 }
-export {createEmployeeController,getEmployees,getEmployeeById,updateEmployee};
+
+const deleteEmployee = async(req,res)=>{
+    try{
+    const { id } = req.params 
+    if(!mongoose.Types.ObjectId.isValid(id))
+    {
+        return res.status(400).json({
+            success : false,
+            message : "Invalid Employee Id"
+        })
+    }
+    
+   const deletedEmployee =  await Employee.findByIdAndDelete(id)
+   if(!deletedEmployee)
+   {
+     return res.status(404).json({
+            success : false,
+            message : "Employee not found"
+        })
+   }
+   res.status(200).json({
+    success : true,
+    message : "Employee deleted succesfully",
+
+   })}catch(err)
+   {
+    console.log("Error message",err)
+        res.status(500).json({
+            success : false,
+            message : "Interal server error"
+        })
+   }
+
+}
+export {createEmployeeController,getEmployees,getEmployeeById,updateEmployee,deleteEmployee};
