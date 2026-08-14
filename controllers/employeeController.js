@@ -1,6 +1,6 @@
 import Employee from "../models/employee.js"
 import User from "../models/user.js"
-
+import mongoose from "mongoose"
 const createEmployeeController = async(req,res)=>{
     try{
     const {user,employeeId,department,designation,salary,phone,joiningDate} = req.body;
@@ -51,4 +51,84 @@ const getEmployees = async(req,res) =>{
     })
 }
 
-export {createEmployeeController,getEmployees};
+const getEmployeeById = async(req,res)=>{
+    try{
+    const { id } = req.params;
+    if(!mongoose.Types.ObjectId.isValid(id))
+    {
+        return res.status(400).json({
+            success : false,
+            message : "Invalid id provided"
+        })
+    }
+    const employeeDetails = await Employee.findById(id).populate("user","-password")
+    if(!employeeDetails)
+    {
+        return res.status(404).json({
+            success : false,
+            message : "Employee not found"
+        })
+    }
+    res.status(200).json({
+        success : true,
+        message : "Employee Found succesfully",
+        employeeDetails
+    })
+}catch(err)
+{
+    console.log("Error message"  ,err.message)
+    res.status(500).json({
+        success : false,
+        message :"Internal Server error"
+    })
+}
+
+}
+
+const updateEmployee = async(req,res)=>{
+    try{
+    const {id} = req.params 
+    
+    const {designation,department,salary,phone,joiningDate} = req.body 
+    const updates = {}
+    if(designation!== undefined) updates.designation = designation
+    if(department!== undefined) updates.department = department
+    if(salary!== undefined) updates.salary = salary
+    if(phone!== undefined) updates.phone = phone
+    if(joiningDate!== undefined) updates.joiningDate = joiningDate 
+    if(Object.keys(updates).length === 0) 
+    {
+        return res.status(400).json({
+            success :false,
+            message :"No fields provided to update"
+        })
+    }
+    if(!mongoose.Types.ObjectId.isValid(id))
+    {
+        return res.status(400).json({
+            success : false,
+            message : "Invalid userId"
+        })
+    }
+    const updatedEmployee = await Employee.findByIdAndUpdate(id,updates,{new : true,runValidators : true}).populate("user","-password")
+    if(!updatedEmployee)
+    {
+        return res.status(404).json({
+            success : false,
+            
+        })
+    }
+    res.status(200).json({
+        success : true,
+        message : "Employee details updated succesfully",
+        employee : updatedEmployee
+    })}catch(err)
+    {
+        console.log("Error message",err)
+        res.status(500).json({
+            success : false,
+            message : "Interal server error"
+        })
+    }
+}
+export {createEmployeeController,getEmployees,getEmployeeById,updateEmployee};
