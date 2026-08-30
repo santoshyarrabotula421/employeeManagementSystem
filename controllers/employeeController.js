@@ -1,17 +1,10 @@
 import Employee from "../models/employee.js"
 import User from "../models/user.js"
 import mongoose from "mongoose"
-const createEmployeeController = async(req,res)=>{
+import { successResponse } from "../utils/response.js"
+const createEmployeeController = async(req,res,next)=>{
     try{
-    const {user,employeeId,department,designation,salary,phone,joiningDate} = req.body;
-    if(!user || !employeeId || !department || !designation || 
-        salary===undefined  || salary === null || !phone || !joiningDate)
-         {
-            return res.status(400).json({
-                success : false,
-                message : "Some fields are missing"
-            })
-         }
+    
     const userExist = await User.findOne({_id :user,role : "employee"})
     if(!userExist)
     {
@@ -30,28 +23,19 @@ const createEmployeeController = async(req,res)=>{
     }
     const newEmployee = {user,employeeId,department,designation,salary,phone,joiningDate}
     await Employee.create(newEmployee);
-    res.status(201).json({
-        success : true,
-        message : "Employee created succefully"
-    })
+    return successResponse(res,201,"Employee created successfully")
 }catch(err)
 {
-    res.status(500).json({
-        success : false,
-        message : "unexpected server error"
-    })
+    next(err)
 }
 }
 
 const getEmployees = async(req,res) =>{
     const employees = await Employee.find().populate("user","-password");
-    return res.status(200).json({
-        success : true,
-        employees
-    })
+    return successResponse(res,200,"Employees fetched successfully",employees)
 }
 
-const getEmployeeById = async(req,res)=>{
+const getEmployeeById = async(req,res,next)=>{
     try{
     const { id } = req.params;
     if(!mongoose.Types.ObjectId.isValid(id))
@@ -69,23 +53,15 @@ const getEmployeeById = async(req,res)=>{
             message : "Employee not found"
         })
     }
-    res.status(200).json({
-        success : true,
-        message : "Employee Found succesfully",
-        employeeDetails
-    })
+    return successResponse(res,200,"Employee Found succesfully",employeeDetails)
 }catch(err)
 {
-    console.log("Error message"  ,err.message)
-    res.status(500).json({
-        success : false,
-        message :"Internal Server error"
-    })
+   next(err)
 }
 
 }
 
-const updateEmployee = async(req,res)=>{
+const updateEmployee = async(req,res,next)=>{
     try{
     const {id} = req.params 
     
@@ -118,21 +94,14 @@ const updateEmployee = async(req,res)=>{
             message : "Employee not found"
         })
     }
-    res.status(200).json({
-        success : true,
-        message : "Employee details updated succesfully",
-        employee : updatedEmployee
-    })}catch(err)
-    {
-        console.log("Error message",err)
-        res.status(500).json({
-            success : false,
-            message : "Interal server error"
-        })
+    return successResponse(res,200,"Employee details updated sucessfully",employee)
+    }
+    catch(err){
+        next(err)
     }
 }
 
-const deleteEmployee = async(req,res)=>{
+const deleteEmployee = async(req,res,next)=>{
     try{
     const { id } = req.params 
     if(!mongoose.Types.ObjectId.isValid(id))
@@ -151,17 +120,11 @@ const deleteEmployee = async(req,res)=>{
             message : "Employee not found"
         })
    }
-   res.status(200).json({
-    success : true,
-    message : "Employee deleted succesfully",
-
-   })}catch(err)
+   return successResponse(res,200,"Employee deleted succesfully")
+   }
+   catch(err)
    {
-    console.log("Error message",err)
-        res.status(500).json({
-            success : false,
-            message : "Interal server error"
-        })
+      next(err)
    }
 
 }

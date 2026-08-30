@@ -1,6 +1,7 @@
 import User from "../models/user.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
+import { successResponse } from "../utils/response.js";
 const testController = (req,res) => {
     res.status(200).json({
         "success" : true,
@@ -8,23 +9,9 @@ const testController = (req,res) => {
     })
 }
 
-const registerController = async(req,res)=>{
+const registerController = async(req,res,next)=>{
     try{
-    const {name,email,password,role} = req.body;
-    if(!name || !email || !password)
-    {
-        return res.status(400).json({
-            "success" : false,
-            "message" : "All fields required"
-        })
-    }
-    if(password.length < 6)
-    {
-        res.status(400).json({
-            success : false,
-            message : "password should be atleast 6 characters"
-        })
-    }
+    const {name,email,password} = req.body;
     const existedUser = await User.findOne({email});
     if(existedUser)
     {
@@ -34,36 +21,19 @@ const registerController = async(req,res)=>{
         })
     }
     const hashedPassword = await bcrypt.hash(password,10);
-    if(role === undefined || role === null)
-    {
-    await User.create({name,email,password : hashedPassword});
-    }
-    else await User.create({name,email,password : hashedPassword,role})
     
-    res.status(201).json({
-        "success" : true,
-        "message" : "user created successfully"
-    })
+    await User.create({name,email,password : hashedPassword})
+    return successResponse(res,201,"user created successfully")
+    
 }catch(err){
-    res.status(500).json({
-        success : false,
-        message : "Internal server error"
-    })
+    next(err)
 }
 
 }
 
-const loginController = async(req,res) =>{
+const loginController = async(req,res,next) =>{
     try
     {
-    const {email,password} = req.body;
-    if(!email || !password)
-    {
-        return res.status(400).json({
-            success : false,
-            message : "email or password is missing"
-        })
-    }
     const user = await User.findOne({email});
     if(!user)
     {
@@ -84,17 +54,11 @@ const loginController = async(req,res) =>{
         userId : user._id,
         role : user.role
     },process.env.JWT_SECRET_KEY,{expiresIn :process.env.JWT_EXPIRY});
-    return res.status(200).json({
-        success : true,
-        message :"user loggedin succesfully",
-        token : jwtToken
-    })}catch(err)
+    return successResponse(res,200,"User loggedin succesfully",jwtToken)
+    }
+    catch(err)
     {
-        console.error("Login error ",err);
-        return res.status(500).json({
-            success : false,
-            message : "something went wrong"
-        })
+       next(err)
     }
 }
 export {testController,registerController,loginController};
