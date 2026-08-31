@@ -1,10 +1,11 @@
 import Router from "router"
 import verifyJWT from "../middlewares/authMiddleware.js"
 import authorizedRoles from "../middlewares/roleMiddleware.js"
-import { updateEmployeeValidator,createEmployeeValidator } from "../validators/employeeValidator.js"
+import { updateEmployeeValidator,createEmployeeValidator, getEmployeesValidator } from "../validators/employeeValidator.js"
 import {createEmployeeController,
        getEmployees,getEmployeeById,
        updateEmployee,deleteEmployee} from "../controllers/employeeController.js"
+import validationMiddleware from "../middlewares/validationMiddleware.js"
 
 const router = Router()
 
@@ -16,7 +17,11 @@ router.post(
     validationMiddleware,
     createEmployeeController
 );
-router.get("/",verifyJWT,authorizedRoles("admin","employee"),getEmployees)
+router.get("/",verifyJWT,
+    authorizedRoles("admin","employee"),
+    getEmployeesValidator,
+    validationMiddleware,
+    getEmployees)
 router.get("/:id",verifyJWT,authorizedRoles("admin","employee"),getEmployeeById)
 router.put(
     "/:id",

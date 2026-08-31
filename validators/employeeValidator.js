@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body,query } from "express-validator";
 
 const createEmployeeValidator = [
     body("user")
@@ -75,7 +75,36 @@ const updateEmployeeValidator = [
         .withMessage("Invalid joining date")
 ];
 
+const getEmployeesValidator = [
+    query('page')
+    .optional()
+    .isInt({min : 1})
+    .withMessage("Page must be a positive integer"),
+
+    query('limit')
+    .optional()
+    .isInt({max : 100})
+    .withMessage("Limit must be atmax of 100"),
+
+    query("sortBy")
+        .optional()
+        .isIn([
+            "salary",
+            "joiningDate",
+            "employeeId",
+            "department",
+            "designation",
+            "createdAt"
+        ])
+        .withMessage("Invalid sort field"),
+
+    query("order")
+        .optional()
+        .isIn(["asc", "desc"])
+        .withMessage("Order must be either asc or desc")
+]
 export {
     createEmployeeValidator,
-    updateEmployeeValidator
+    updateEmployeeValidator,
+    getEmployeesValidator
 };

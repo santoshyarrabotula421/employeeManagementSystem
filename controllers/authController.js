@@ -25,7 +25,8 @@ const registerController = async(req,res,next)=>{
     await User.create({name,email,password : hashedPassword})
     return successResponse(res,201,"user created successfully")
     
-}catch(err){
+}
+catch(err){
     next(err)
 }
 
@@ -34,6 +35,7 @@ const registerController = async(req,res,next)=>{
 const loginController = async(req,res,next) =>{
     try
     {
+    const { email, password } = req.body;
     const user = await User.findOne({email});
     if(!user)
     {

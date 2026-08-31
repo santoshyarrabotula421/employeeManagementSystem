@@ -30,10 +30,110 @@ const createEmployeeController = async(req,res,next)=>{
 }
 }
 
-const getEmployees = async(req,res) =>{
-    const employees = await Employee.find().populate("user","-password");
-    return successResponse(res,200,"Employees fetched successfully",employees)
-}
+const getEmployees = async (req, res, next) => {
+    try {
+        const {
+            page = 1,
+            limit = 10,
+            department,
+            designation,
+            search,
+            sortBy = "createdAt",
+            order = "desc"
+        } = req.query;
+
+        // Filtering
+        const filter = {};
+
+        if (department) {
+            filter.department = {
+                $regex: department,
+                $options: "i"
+            };
+        }
+
+        if (designation) {
+            filter.designation = {
+                $regex: designation,
+                $options: "i"
+            };
+        }
+
+        // Search
+        if (search) {
+            filter.$or = [
+                {
+                    employeeId: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    department: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    designation: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    phone: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
+            ];
+        }
+
+        // Pagination
+        const pageNumber = Number(page);
+        const limitNumber = Number(limit);
+        const skip = (pageNumber - 1) * limitNumber;
+
+        // Sorting
+        const sortOrder = order === "asc" ? 1 : -1;
+
+        const sort = {
+            [sortBy]: sortOrder
+        };
+
+        // Total employees after filtering
+        const totalEmployees = await Employee.countDocuments(filter);
+
+        const totalPages = Math.ceil(
+            totalEmployees / limitNumber
+        );
+
+        // Get employees
+        const employees = await Employee.find(filter)
+            .populate("user", "-password")
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNumber);
+
+        const data = {
+            employees,
+            totalPages,
+            currentPage: pageNumber,
+            totalEmployees,
+            limit: limitNumber
+        };
+
+        return successResponse(
+            res,
+            200,
+            "Employees fetched successfully",
+            data
+        );
+
+    } catch (err) {
+        next(err);
+    }
+};
 
 const getEmployeeById = async(req,res,next)=>{
     try{
